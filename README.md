@@ -1,144 +1,155 @@
-# ThermoSense 🌡️⚡
+# **ThermoSense** 🌡⚡  
+**Cross-Platform Real-Time Battery & Thermal Health Dashboard**  
 
-Cross‑platform battery–health dashboard powered by a Random‑Forest model, FastAPI, and a React front‑end.
-
-| OS                | Back‑end runs | Sensor data available | Front‑end runs |
-|-------------------|--------------|-----------------------|----------------|
-| **macOS (Apple/Intel)** | **Native** (Python 3.11) | Battery °C (via `ioreg`), Thermal‑pressure (`powermetrics`) | Docker (Nginx) |
-| **Windows 10/11** | **Native** (Python 3.11) | CPU package °C (via WMI) \* | Docker (Nginx) |
-
-\* Install `wmi` for CPU‑temp, otherwise temperature charts fall back to ambient.
+ThermoSense combines **FastAPI**, **Machine Learning**, and a **React** frontend to monitor battery health and thermal stats in real time.  
+Runs natively on macOS/Windows with a Dockerized frontend.  
 
 ---
 
-## 📂 Directory layout
+## **📌 Features**
+- 🔥 **Real-Time Monitoring** of battery temperature, thermal pressure, and CPU temperature (when supported).
+- 🤖 **Random Forest Model** to predict health metrics.
+- 🌐 **Cross-Platform** support for macOS (Intel/Apple Silicon) & Windows.
+- 🐳 **Dockerized Frontend** for consistent deployment.
+- 📊 **Interactive Charts & History Panel** for trend analysis.
+- 🤝 **AI Advisory** powered by Gemini API.
+
+---
+
+## **📂 Directory Structure**
 ```
-thermosense/
-├── backend/                    # FastAPI + ML + sensors
-│   ├── app.py
-│   ├── main.py
-│   ├── system_stats.py
-│   ├── requirements.txt
-│   └── .env                    # <-- holds OPENWEATHER_API_KEY (git‑ignored)
+
+ThermoSense/
+├── backend/                 # FastAPI backend + ML model + sensor scripts
+│   ├── app.py                # FastAPI app entry
+│   ├── main.py               # Alternative entry / setup
+│   ├── system\_stats.py       # Hardware data collection
+│   ├── gemini\_advisor.py     # AI-based advisory module
+│   ├── requirements.txt      # Python dependencies
+│   ├── thermosense\_test\_data.csv
+│   ├── .env                  # API keys & secrets (ignored by Git)
+│   └── Dockerfile            # Backend Dockerfile
+│
 └── docker/
-    ├── client/                 # React + Nginx container
-    │   ├── Dockerfile
-    │   ├── nginx.conf
-    │   ├── .dockerignore
-    │   └── src/…               # React source
-    └── docker-compose.yml
-```
+├── client/               # React frontend + Nginx
+│   ├── src/components/   # UI components
+│   │   ├── Dashboard.jsx
+│   │   ├── DualAxisChart.js
+│   │   ├── HistoryPanel.jsx
+│   │   ├── StatCard.jsx
+│   │   └── TemperatureForm.js
+│   ├── App.js
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   ├── package.json
+│   └── ...
+└── docker-compose.yml    # Orchestrates frontend container
+
+````
 
 ---
 
-## 🔑 Secrets
-
-Create `backend/.env` (never commit it):
-
+## **🔑 Environment Variables**
+Create a `backend/.env` file (**do not commit this to GitHub**):  
 ```env
-OPENWEATHER_API_KEY=your_api_key
-```
+OPENWEATHER_API_KEY=your_openweather_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+````
+
+* `OPENWEATHER_API_KEY` → Fetches real-time weather data for context in predictions.
+* `GEMINI_API_KEY` → Used for AI-powered advisory features (`gemini_advisor.py`).
 
 ---
 
-## 🛠️ Initial setup (once per machine)
+## **🛠 First-Time Setup**
 
-#### macOS
+### **macOS**
+
 ```bash
-# clone
-git clone [https://github.com/](https://github.com/)<you>/thermosense.git
-cd thermosense
+git clone https://github.com/<your-username>/ThermoSense.git
+cd ThermoSense
 
-# back‑end venv
+# Backend
 python3 -m venv backend/.venv
 source backend/.venv/bin/activate
 pip install --upgrade pip
 pip install -r backend/requirements.txt
 
-# Docker: build React image
+# Frontend (Docker)
 cd docker
 docker compose build
 ```
 
-#### Windows
-```powershell
-# clone
-git clone [https://github.com/](https://github.com/)<you>/thermosense.git
-cd thermosense
+### **Windows**
 
-# back‑end venv
+```powershell
+git clone https://github.com/<your-username>/ThermoSense.git
+cd ThermoSense
+
+# Backend
 python -m venv backend\.venv
 .\backend\.venv\Scripts\Activate.ps1
 pip install --upgrade pip
 pip install -r backend\requirements.txt
-pip install wmi            # optional CPU‑temp
+pip install wmi   # Optional CPU temp
 
-# build React image
+# Frontend (Docker)
 cd docker
 docker compose build
 ```
----
-
-## 🚀 Every‑day run
-
-1.  **Start native FastAPI (Terminal 1)**
-    * **macOS**
-        ```bash
-        cd backend
-        source .venv/bin/activate
-        sudo uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-        ```
-    * **Windows** (no `sudo`)
-        ```powershell
-        cd backend
-        .\.venv\Scripts\Activate.ps1
-        uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-        ```
-
-2.  **Start React container (Terminal 2)**
-    ```bash
-    cd docker
-    docker compose up -d
-    ```
-
-3.  **Open the dashboard**
-    Open your browser to `http://localhost:3000`
 
 ---
 
-## 🛑 Stopping
+## **🚀 Running the App**
 
-* **Stop FastAPI:** Press `CTRL‑C` in Terminal 1.
+**1️⃣ Start FastAPI Backend**
 
-* **Stop and remove container:**
-    ```bash
-    cd docker
-    docker compose down
-    ```
----
+* **macOS**
 
-## 🐙 Git workflow
 ```bash
-# if not already a repo
-git init
-
-# add important files to .gitignore
-echo "backend/.env" >> .gitignore
-echo "backend/.venv/" >> .gitignore
-echo "docker/client/node_modules/" >> .gitignore
-echo "docker/client/build/" >> .gitignore
-
-# commit and push
-git add .
-git commit -m "Cross‑platform ThermoSense: native API, dockerised React"
-git remote add origin [https://github.com/](https://github.com/)<you>/thermosense.git
-git push -u origin main
+cd backend
+source .venv/bin/activate
+sudo uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
+
+* **Windows**
+
+```powershell
+cd backend
+.\.venv\Scripts\Activate.ps1
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**2️⃣ Start React Frontend**
+
+```bash
+cd docker
+docker compose up -d
+```
+
+**3️⃣ Open in Browser**
+
+```
+http://localhost:3000
+```
+
 ---
 
-## 📝 Notes
-* **macOS** requires `sudo` for `powermetrics`. You can add a `NOPASSWD` line in `/etc/sudoers` for password‑less startup if desired.
-* **Windows** CPU‑temp depends on motherboard sensors being exposed via WMI. If they're unsupported, the dashboard gracefully falls back to ambient temperature.
-* The front‑end reads the `REACT_APP_API_ROOT` environment variable at build time. The `docker-compose.yml` file sets this to `http://localhost:8000`.
+## **🛑 Stopping the App**
 
-Enjoy your portable, sensor‑aware ThermoSense dashboard! 🚀
+```bash
+# Stop backend: Ctrl + C
+# Stop frontend:
+cd docker
+docker compose down
+```
+
+---
+
+## **📌 Notes**
+
+* macOS requires `sudo` for `powermetrics` (consider adding to `/etc/sudoers` for passwordless use).
+* Windows temperature monitoring depends on motherboard sensor availability via WMI.
+* `docker-compose.yml` sets `REACT_APP_API_ROOT` for frontend-backend communication.
+
+
